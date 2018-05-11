@@ -6,11 +6,11 @@ date <- as.character(seq(as.Date("2016-05-01"), as.Date("2017-06-30"), "day"))
 measurement <- c("air-temperature","relative-humidity","wind-direction","wind-speed","rainfall")
 dtMetadata <- data.table()
 
-dir.create(str_c(getwd(),"/processed_data/JSON"))
-set.seed(1)
-for (i in sample(1:length(date),10)){
+dir.create(str_c("processed_data/JSON"))
+
+for (i in 1:length(date)){
   dateI <- date[i]
-  dir.create(str_c(getwd(),"/processed_data/JSON/",dateI))
+  dir.create(str_c("processed_data/JSON/",dateI))
   lsMeta <- list(date = date[i])
 
   for (j in 1:length(measurement)){
@@ -20,14 +20,16 @@ for (i in sample(1:length(date),10)){
       try({
         lsData <- read_json(str_c("https://api.data.gov.sg/v1/environment/",measurementJ,
                                     "?date=",dateI))
+        Sys.sleep(20)
       })
     }
     lsMeta[[measurementJ]] <- length(lsData$items)
     write(toJSON(lsData,pretty = T),
-          str_c(getwd(),"/processed_data/JSON/",
+          str_c("processed_data/JSON/",
                 dateI,"/",measurementJ,".json"))
   }
   dtMetadata <- rbindlist(list(dtMetadata,as.data.table(lsMeta)))
   print(dtMetadata[date == dateI,])
 }
-fwrite(dtMetadata,"metadata 20180508.csv")
+
+fwrite(dtMetadata,"processed_data/JSON/metadata 20180508.csv")
